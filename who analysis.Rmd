@@ -1,0 +1,104 @@
+---
+output: html_document
+---
+Who analysis
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+This is real data found on World Health Organization
+
+```{r}
+who
+```
+
+```{r}
+who1 = who %>% 
+  gather(new_sp_m014:newrel_f65,key=key,value=cases,na.rm = TRUE)%>%
+  mutate(key = stringr::str_replace(key,'newrel','new_rel'))%>%
+  separate(key,into = c('new','type','sexage'),sep = '_')%>%
+  separate(sexage,into = c('sex','age'),sep = 1)
+```
+
+```{r}
+who1 = who1 %>%
+  select(-c(iso2,iso3))%>%
+  group_by(country,year)%>%
+  arrange(desc(cases))
+```
+
+```{r}
+who1
+```
+
+```{r}
+ggplot(who1,aes(cases))+geom_boxplot()+theme_light()+xlim(50000,250000)
+```
+
+```{r}
+ggplot(who1,aes(sex))+geom_bar()+theme_light()+ylim(0,60000)
+```
+
+```{r}
+ggplot(who1,aes(x= age,y = cases))+geom_col()+theme_light()+ylim(0,100000)+ggtitle("No. of cases according to Age")
+       
+```
+
+```{r}
+who3 = who1 %>%
+  group_by(country)%>%
+  summarize(cases_count = max(cases))%>%
+  arrange(desc(cases_count))
+
+```
+
+```{r}
+who3
+```
+
+```{r}
+filtered_country = who3 %>%
+  filter(cases_count >=20000)
+```
+
+```{r}
+filtered_country = filtered_country %>%
+  mutate(country= stringr::str_replace(country,'United Republic of Tanzania',"Tanzania"))
+```
+
+```{r}
+filtered_country
+```
+
+```{r}
+ggplot(filtered_country,aes(x= fct_reorder(country,cases_count),y = cases_count))+geom_col(width = 0.5)+ ylab('Count of cases')+xlab("Country")+ggtitle("Largest cases per Country")
+```
+
+```{r}
+who1
+```
+
+```{r}
+summary(who1$year)
+```
+
+```{r}
+ggplot(who1,aes(year))+geom_boxplot()+theme_light()+ggtitle("Distribution of years in our data")
+```
+
+```{r}
+ggplot(who1,aes(x = year , y= cases))+geom_line()+theme_light()+ggtitle("Distribution of cases over years")
+```
+
+```{r}
+ggplot(who1,aes(fct_infreq(type)))+ geom_bar()+theme_light()+xlab("Type")+ggtitle("Count of type")
+```
+
+```{r}
+ggplot(who1,aes(type, y= cases))+geom_col()+theme_light()+ylim(0,100000)+ggtitle("No. of cases according to Type")
+```
+
+```{r}
+```
